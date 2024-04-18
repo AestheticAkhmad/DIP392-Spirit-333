@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 import re
 
+from GamePage import GamePage
+
 class Player:
     def __init__(self, name, score) -> None:
         self.name = name
@@ -55,6 +57,7 @@ class GameMenu:
         self.player2.name = self.player2_entry.get()
 
     def StartGame(self):
+        game_page = GamePage(self.window)
         print("STARTED THE GAME")
 
     def InitStart(self):

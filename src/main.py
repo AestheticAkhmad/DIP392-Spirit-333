@@ -1,5 +1,6 @@
 import tkinter as tk
 from GameMenu import GameMenu
+from GamePage import GamePage
 from PIL import Image, ImageTk
 
 main_window = tk.Tk()
