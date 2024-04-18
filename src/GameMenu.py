@@ -17,6 +17,7 @@ class GameMenu:
         self.menu_frame = ttk.Frame(self.window)
         self.menu_frame.grid(row=0, column=0, sticky="nsew")
         self.pattern = r"^(?=.*[A-Za-z])[A-Za-z0-9]{3,16}$"
+        self.info_label = None
 
         self.CreateMenu()
         
@@ -33,19 +34,28 @@ class GameMenu:
         return 240
     
     def PrecheckInput(self):
-        if re.match(self.pattern, self.player1.name):
-            print(f"Player 1: {self.player1.name}")
-        else:
-            print("Invalid username for player 1. Please just use alphabet and numbers")
+        both_are_valid = True
+        error_message = ""
+        if not re.match(self.pattern, self.player1.name):
+            error_message = "Invalid name for Player 1.\nPlease use only numbers and English lettes.\n"
+            both_are_valid = False
         
-        if re.match(self.pattern, self.player2.name):
-            print(f"Player 2: {self.player2.name}")
-        else:
-            print("Invalid username for player 2. Please just use alphabet and numbers")
-    
+        if not re.match(self.pattern, self.player2.name):
+            error_message += "Invalid name for Player 2.\nPlease use only numbers and English lettes."
+            both_are_valid = False
+
+        if not both_are_valid:
+            self.info_label.config(text=error_message)
+
+        if both_are_valid:
+            self.StartGame()
+
     def InitPlayerNames(self):
         self.player1.name = self.player1_entry.get()
         self.player2.name = self.player2_entry.get()
+
+    def StartGame(self):
+        print("STARTED THE GAME")
 
     def InitStart(self):
         self.InitPlayerNames()
@@ -77,6 +87,10 @@ class GameMenu:
         start_button = tk.Button(self.menu_frame, text="Start Game", command=self.InitStart)
         start_button.grid(row=2, column=0, columnspan=2, padx=20, pady=20)
         start_button.config(height=2, width=20)
+
+        # Notification label
+        self.info_label = tk.Label(self.menu_frame, text="Please, use English letters and numbers.", fg="red")
+        self.info_label.grid(row=3, column=0, columnspan=2, padx=20, pady=20)
 
     def CheckPlayerNames(self):
         pass
