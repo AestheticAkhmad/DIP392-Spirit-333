@@ -60,7 +60,7 @@ class GameMenu:
         self.player2.name = self.player2_entry.get()
 
     def StartGame(self):
-        game_page = GamePage(self.window)
+        game_page = GamePage(self.window, self.player1, self.player2)
         print("STARTED THE GAME")
 
     def InitStart(self):
