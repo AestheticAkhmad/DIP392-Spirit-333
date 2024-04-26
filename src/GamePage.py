@@ -1,18 +1,69 @@
 import tkinter as tk
 from tkinter import ttk
+from List_of_words import word_hints
+import random
 
 class GamePage:
     def __init__(self, main_window) -> None:
-        self.game_frame = ttk.Frame()
+        self.game_frame = ttk.Frame(main_window)
         self.game_frame.grid(row=0, column=0, sticky='nsew')
         self.letter_tiles = list()
         self.hint_label = None
+        self.playing_word = ""
+        self.hint = ""
+        self.word_indices = dict()
+        self.playing_letter = ""
 
         self.open_game_window()
+        self.ReadWordAndHint()
+        main_window.bind("<Key>", self.GetPressedKey)
         self.game_frame.tkraise()
 
-    def ReadWordAndHint():
-        pass
+    def GetRandomNumber(self):
+        return random.randint(0, 39)
+    
+    def FindLetters(self, letter):
+        if letter in self.word_indices:
+            return True, self.word_indices[letter]
+        return False, []
+
+    def SplitPlayingWord(self):
+        for i, k in enumerate(self.playing_word):
+            if k not in self.word_indices:
+                self.word_indices[k] = [i]
+            else:
+                self.word_indices[k].append(i)
+
+        print(self.word_indices)
+
+    def ReadWordAndHint(self):
+        random_number = self.GetRandomNumber()
+        self.playing_word = list(word_hints[random_number].keys())[0]
+        self.hint = list(word_hints[random_number].values())[0]
+        self.hint_label.config(text="Hint: "+ self.hint)
+
+        index = len(self.playing_word)
+        # for letter, label in zip(self.playing_word, self.letter_tiles):
+        #     #label.config(text=f" {letter} ")
+        #     index += 1
+
+        while index < len(self.letter_tiles):
+            self.letter_tiles[index].pack_forget()
+            index += 1
+
+        self.SplitPlayingWord()
+
+        print(self.playing_word, "\n", self.hint)
+
+    def GetLetterInput(self):
+        letter = self.playing_letter
+        if len(letter) == 1 and letter.isalpha():
+            print(letter)
+        else:
+            print("Letter must be alphabetic without numbers and special characters.")
+        
+    def GetPressedKey(self, event):
+        print("Key pressed:", event.keysym)
 
     def open_game_window(self):
         # Top Frame
@@ -22,25 +73,25 @@ class GamePage:
         tiles_frame = ttk.Frame(top_frame)
         tiles_frame.grid(row=0, column=0, sticky='nsew', padx=10, pady=(20, 10))
         for i in range(12):
-            tile_label = ttk.Label(tiles_frame, text=" A ", font=('Arial', 40), borderwidth=1, relief="raised")
+            tile_label = ttk.Label(tiles_frame, text="    ", font=('Arial', 50), borderwidth=1, relief="raised")
             tile_label.pack(side="left", padx=2)
             self.letter_tiles.append(tile_label)
 
 
         # Home button
         home_button = tk.Button(top_frame, text="Home")
-        home_button.grid(row=0, column=1, sticky='nsew', padx=10, pady=(20, 10))
+        home_button.grid(row=0, column=1, sticky='nse', padx=10, pady=(20, 10))
         home_button.config(height=2, width=10)
 
         exit_button = tk.Button(top_frame, text="Exit")
-        exit_button.grid(row=0, column=2, sticky='nsew', padx=10, pady=(20, 10))
+        exit_button.grid(row=0, column=2, sticky='nse', padx=10, pady=(20, 10))
         exit_button.config(height=2, width=10)
 
         # Bottom frame
         bottom_frame = ttk.Frame(self.game_frame)
 
         # Hint label
-        self.hint_label = tk.Label(bottom_frame, text="Hint: ")
+        self.hint_label = tk.Label(bottom_frame, text="", font=('Arial', 32))
         self.hint_label.grid(row=0, column=0, sticky='nsew', padx=(10, 5), pady=(5, 5))
 
         # Bottom middle frame

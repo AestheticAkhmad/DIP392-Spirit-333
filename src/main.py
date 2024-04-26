@@ -17,7 +17,6 @@ main_window.resizable(False, False)
 # # background_label = tk.Label(main_window, image=background_image)
 # # background_label.place(x=0, y=0, relwidth=1, relheight=1)
 
-
 game_menu = GameMenu(main_window)
 
 main_window.mainloop()
