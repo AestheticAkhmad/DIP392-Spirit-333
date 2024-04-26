@@ -22,7 +22,7 @@ class GamePage:
         self.can_move = True
         self.current_bonus_label = None
 
-        self.open_game_window()
+        self.InitGameWindow()
         self.ReadWordAndHint()
         main_window.bind("<Key>", self.GetPressedKey)
         self.game_frame.tkraise()
@@ -86,12 +86,15 @@ class GamePage:
 
     def StartWheelRotation(self):
         if self.can_move == True:
-            self.wheel.RotateWheel()
-            bonus = self.wheel.GetBonus(self.wheel.end_angle)
-            self.current_bonus_label.config(text=f'{bonus}')
-            #self.can_move = False
+            self.current_bonus_label.config(text=f'Rotating...')
+            def SetBonusLabel(angle):
+                bonus = self.wheel.GetBonus(angle)
+                self.current_bonus_label.config(text=f'{bonus}')
+                #self.can_move = False
 
-    def open_game_window(self):
+            self.wheel.RotateWheel(callback=SetBonusLabel)
+
+    def InitTopFrame(self):
         # Top Frame
         top_frame = ttk.Frame(self.game_frame)
 
@@ -111,10 +114,10 @@ class GamePage:
         exit_button = tk.Button(top_frame, text="Exit")
         exit_button.grid(row=0, column=2, sticky='nse', padx=10, pady=(20, 10))
         exit_button.config(height=2, width=10)
+        
+        top_frame.grid(row=0, column=0, sticky='nsew', pady=(30, 30))
 
-        # Bottom frame
-        bottom_frame = ttk.Frame(self.game_frame)
-
+    def GenerateBottomLeftFrame(self, bottom_frame):
         # Hint label
         bottom_left_frame = ttk.Frame(bottom_frame)
         self.hint_label = tk.Label(bottom_left_frame, text="", font=('Arial', 26))
@@ -123,6 +126,9 @@ class GamePage:
         self.rule_label = tk.Label(bottom_left_frame, text="Rule: press alphabetic letter and Enter key.", font=('Arial', 16))
         self.rule_label.grid(row=1, column=0, sticky='nsw', padx=(10, 5), pady=(5, 5))
 
+        bottom_left_frame.grid(row=1, column=0, sticky='nsew')
+
+    def GenerateBottomMiddleFrame(self, bottom_frame):
         # Bottom middle frame
         bottom_middle_frame = ttk.Frame(bottom_frame)
 
@@ -137,6 +143,14 @@ class GamePage:
         self.current_bonus_label = ttk.Label(bonus_frame, text="No bonuses.", font=('Fixedsys', 30, "bold"))
         self.current_bonus_label.grid(row=0,column=0, sticky='nsew')
 
+        # Rotate button
+        self.rotate_button = tk.Button(bottom_middle_frame, text="Rotate Wheel")
+        self.rotate_button.config(command=lambda: self.StartWheelRotation())
+        self.rotate_button.grid(row=2, column=0, sticky='nsew', padx=0, pady=0)
+
+        bottom_middle_frame.grid(row=1, column=1, sticky='nsew')
+
+    def GenerateBottomRightFrame(self, bottom_frame):
         # Bottom right frame
         bottom_right_frame = ttk.Frame(bottom_frame)
 
@@ -151,16 +165,29 @@ class GamePage:
         turn_label = tk.Label(bottom_right_frame, text=f"{self.player_turn}'s Turn", bg='blue', fg='white')
         turn_label.grid(row=2, column=0, sticky='nsew', padx=0, pady=0)
 
-        # Rotate button
-        self.rotate_button = tk.Button(bottom_right_frame, text="Rotate Wheel")
-        self.rotate_button.config(command=lambda: self.StartWheelRotation())
-        self.rotate_button.grid(row=3, column=0, sticky='nsew', padx=0, pady=0)
+        # Guess placements
+        selected_option = tk.StringVar()
 
+        guess_letter_rbutton = tk.Radiobutton(bottom_right_frame, text="Guess letter:", variable=selected_option, value="Guess letter: ", font=('Arial', 18))
+        guess_letter_rbutton.grid(row=3, column=0, sticky='nsew', padx=0, pady=(10,5))
 
-        top_frame.grid(row=0, column=0, sticky='nsew', pady=(30, 30))
-        bottom_frame.grid(row=1, column=0, sticky='nsew')
-        bottom_left_frame.grid(row=1, column=0, sticky='nsew')
-        bottom_middle_frame.grid(row=1, column=1, sticky='nsew')
+        guess_word_rbutton = tk.Radiobutton(bottom_right_frame, text="Guess word:", variable=selected_option, value="Guess word: ", font=('Arial', 18))
+        guess_word_rbutton.grid(row=4, column=0, sticky='nsew', padx=0, pady=(10,5))
+
         bottom_right_frame.grid(row=1, column=2, sticky='nsew')
+
+    def InitBottomFrame(self):
+        # Bottom frame
+        bottom_frame = ttk.Frame(self.game_frame)
+        self.GenerateBottomLeftFrame(bottom_frame)
+        self.GenerateBottomMiddleFrame(bottom_frame)
+        self.GenerateBottomRightFrame(bottom_frame)
+
+        bottom_frame.grid(row=1, column=0, sticky='nsew')
+        
+    def InitGameWindow(self):
+        self.InitTopFrame()
+        self.InitBottomFrame()
+        
 
         

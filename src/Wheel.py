@@ -8,6 +8,7 @@ class Wheel:
         self.current_angle = 0
         self.end_angle = 0
         self.after_id = None
+        self.bonus_result = None
 
         self.wheel_image_tk = None
 
@@ -20,7 +21,6 @@ class Wheel:
 
         self.root = root
 
-        # Now create the canvas and add the wheel image to it
         self.canvas = Canvas(self.root, width=self.arrow_image.width(), height=self.arrow_image.height())
         self.canvas.pack()
 
@@ -29,57 +29,55 @@ class Wheel:
         self.canvas.coords(self.arrow, 0, 0)
 
     def UpdateRotation(self, angle):
-        # Open the original image with Pillow
         original_img = Image.open(self.wheel_image_path)
         
-        # Rotate the image by the given angle
+        # Rotate the image
         rotated_img = original_img.rotate(angle)
-
-        # Convert the Pillow image to a Tkinter PhotoImage
         self.wheel_image_tk = ImageTk.PhotoImage(rotated_img)
-
-        # Update the canvas with the new rotated image
         self.canvas.itemconfig(self.wheel, image=self.wheel_image_tk)
 
-    def AnimateRotation(self, end_angle, step=9, speed=1, counter=0):
+    def AnimateRotation(self, end_angle, step=9, speed=1, counter=0, callback=None):
         if self.current_angle < end_angle:
             if counter % 20 == 0:
                 speed += 1
             self.current_angle += step
             self.UpdateRotation(self.current_angle)
-            self.after_id = self.root.after(speed, self.AnimateRotation, end_angle, step, speed)
+            self.after_id = self.root.after(speed, self.AnimateRotation, end_angle, step, speed, counter, callback)
         else:
-            # Reset the angle for the next spin
+            # Reset the angle for the next rotation
             self.current_angle = 0
+            if callback:
+                callback(self.end_angle)
 
-    def RotateWheel(self):
-        # If there is an ongoing animation, stop it
+    def RotateWheel(self, callback=None):
         if self.after_id:
             self.root.after_cancel(self.after_id)
             self.after_id = None
 
-        # Calculate a new angle to rotate to
-        # You can add logic here to ensure that the end_angle is different each time
-        self.end_angle = int(random.uniform(0, 360)) + self.current_angle + 1080
+        self.end_angle = int(random.randint(0, 360)) + self.current_angle + 1080
+        if self.end_angle % 360 in [0, 45, 90, 135, 180, 225, 270, 315]:
+            self.end_angle += random.choice([3, -3])
         
         # Start the animation
-        self.AnimateRotation(self.end_angle)
+        self.AnimateRotation(self.end_angle, callback=callback)
 
     def GetBonus(self, angle):
         right_angle = angle % 360
         if 0 <= right_angle < 45:
-            return "$200"
+            return "$10"
         elif 45 <= right_angle < 90:
-            return "$100"
-        elif 90 <= right_angle < 135:
-            return "$10"
-        elif 135 <= right_angle < 180:
-            return "$500"
-        elif 180 <= right_angle < 225:
-            return "Backruptcy"
-        elif 225 <= right_angle < 270:
-            return "$100"
-        elif 270 <= right_angle < 315:
             return "$200"
-        elif 315 <= right_angle < 360:
+        elif 90 <= right_angle < 135:
+            return "$100"
+        elif 135 <= right_angle < 180:
+            return "Backruptcy"
+        elif 180 <= right_angle < 225:
+            return "$500"
+        elif 225 <= right_angle < 270:
             return "$10"
+        elif 270 <= right_angle < 315:
+            return "$100"
+        elif 315 <= right_angle < 360:
+            return "$200"
+        
+        
