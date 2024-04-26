@@ -9,6 +9,7 @@ class GamePage:
         self.game_frame.grid(row=0, column=0, sticky='nsew')
         self.letter_tiles = list()
         self.hint_label = None
+        self.rule_label = None
         self.playing_word = ""
         self.hint = ""
         self.word_indices = dict()
@@ -22,7 +23,7 @@ class GamePage:
     def GetRandomNumber(self):
         return random.randint(0, 39)
     
-    def FindLetters(self, letter):
+    def FindLetter(self, letter):
         if letter in self.word_indices:
             return True, self.word_indices[letter]
         return False, []
@@ -38,14 +39,11 @@ class GamePage:
 
     def ReadWordAndHint(self):
         random_number = self.GetRandomNumber()
-        self.playing_word = list(word_hints[random_number].keys())[0]
+        self.playing_word = list(word_hints[random_number].keys())[0].upper()
         self.hint = list(word_hints[random_number].values())[0]
         self.hint_label.config(text="Hint: "+ self.hint)
 
         index = len(self.playing_word)
-        # for letter, label in zip(self.playing_word, self.letter_tiles):
-        #     #label.config(text=f" {letter} ")
-        #     index += 1
 
         while index < len(self.letter_tiles):
             self.letter_tiles[index].pack_forget()
@@ -61,9 +59,20 @@ class GamePage:
             print(letter)
         else:
             print("Letter must be alphabetic without numbers and special characters.")
-        
+    
+    def ShowFoundLetters(self, indices):
+        for i in indices:
+            self.letter_tiles[i].config(text=f" {self.playing_word[i]} ")
+
     def GetPressedKey(self, event):
-        print("Key pressed:", event.keysym)
+        current_letter = event.keysym
+        if current_letter == "Return":
+            found, letters = self.FindLetter(self.playing_letter)
+            if found == True:
+                self.ShowFoundLetters(letters)
+
+        elif current_letter.isalpha():
+            self.playing_letter = current_letter.upper()
 
     def open_game_window(self):
         # Top Frame
@@ -76,7 +85,6 @@ class GamePage:
             tile_label = ttk.Label(tiles_frame, text="    ", font=('Arial', 50), borderwidth=1, relief="raised")
             tile_label.pack(side="left", padx=2)
             self.letter_tiles.append(tile_label)
-
 
         # Home button
         home_button = tk.Button(top_frame, text="Home")
@@ -91,8 +99,12 @@ class GamePage:
         bottom_frame = ttk.Frame(self.game_frame)
 
         # Hint label
-        self.hint_label = tk.Label(bottom_frame, text="", font=('Arial', 32))
-        self.hint_label.grid(row=0, column=0, sticky='nsew', padx=(10, 5), pady=(5, 5))
+        bottom_left_frame = ttk.Frame(bottom_frame)
+        self.hint_label = tk.Label(bottom_left_frame, text="", font=('Arial', 26))
+        self.hint_label.grid(row=0, column=0, sticky='nsw', padx=(10, 5), pady=(5, 5))
+
+        self.rule_label = tk.Label(bottom_left_frame, text="Rule: press alphabetic letter and Enter key.", font=('Arial', 16))
+        self.rule_label.grid(row=1, column=0, sticky='nsw', padx=(10, 5), pady=(5, 5))
 
         # Bottom middle frame
         bottom_middle_frame = ttk.Frame(bottom_frame)
@@ -125,6 +137,7 @@ class GamePage:
 
         top_frame.grid(row=0, column=0, sticky='nsew', pady=(30, 30))
         bottom_frame.grid(row=1, column=0, sticky='nsew')
+        bottom_left_frame.grid(row=1, column=0, sticky='nsew')
         bottom_middle_frame.grid(row=1, column=1, sticky='nsew')
         bottom_right_frame.grid(row=1, column=2, sticky='nsew')
 
