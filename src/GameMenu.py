@@ -38,8 +38,11 @@ class GameMenu:
     def PrecheckInput(self):
         both_are_valid = True
         error_message = ""
+        if self.player1.name == self.player2.name:
+            error_message = "Names must not be the same.\n"
+            both_are_valid = False
         if not re.match(self.pattern, self.player1.name):
-            error_message = "Invalid name for Player 1.\nPlease use only numbers and English lettes.\n"
+            error_message += "Invalid name for Player 1.\nPlease use only numbers and English lettes.\n"
             both_are_valid = False
         
         if not re.match(self.pattern, self.player2.name):
