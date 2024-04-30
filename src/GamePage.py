@@ -3,6 +3,7 @@ from tkinter import ttk
 from List_of_words import word_hints
 from Wheel import Wheel
 import random
+import collections
 
 class GamePage:
     def __init__(self, main_window, player1, player2) -> None:
@@ -14,13 +15,19 @@ class GamePage:
         self.playing_word = ""
         self.hint = ""
         self.word_indices = dict()
-        self.playing_letter = ""
+        
         self.player1 = player1
         self.player2 = player2
         self.player_turn = self.GetRandomPlayerTurn()
         self.wheel = None
         self.can_move = True
         self.current_bonus_label = None
+        self.current_input_letter = None
+        self.current_input_word = None
+        self.word_start_idx = 0
+        self.selected_option = "L"
+        self.guessing_input_word = collections.deque()
+        self.guessing_input_letter = ""
 
         self.InitGameWindow()
         self.ReadWordAndHint()
@@ -57,11 +64,18 @@ class GamePage:
         self.hint = list(word_hints[random_number].values())[0]
         self.hint_label.config(text="Hint: "+ self.hint)
 
-        index = len(self.playing_word)
+        self.word_start_idx = int((12 - len(self.playing_word))/2)
 
-        while index < len(self.letter_tiles):
-            self.letter_tiles[index].pack_forget()
-            index += 1
+        start = self.word_start_idx
+        if len(self.playing_word) % 2 == 0:
+            end = 12 - start
+        else:
+            end = 12 - start - 1
+
+        while start < end:
+            self.letter_tiles[start].config(bg='lightblue')
+            start += 1
+        
 
         self.SplitPlayingWord()
 
@@ -69,28 +83,51 @@ class GamePage:
     
     def ShowFoundLetters(self, indices):
         for i in indices:
-            self.letter_tiles[i].config(text=f" {self.playing_word[i]} ")
+            self.letter_tiles[i + self.word_start_idx].config(text=f"{self.playing_word[i]}")
 
     def GetPressedKey(self, event):
         current_letter = event.keysym
         if current_letter == "Return":
-            found, letters = self.FindLetter(self.playing_letter)
+            found, letters = self.FindLetter(self.guessing_input_letter)
             if found == True:
                 self.ShowFoundLetters(letters)
+                self.UpdatePlayerScore()
+            else:
+                self.ChangePlayerTurn()
+
+        elif current_letter == "BackSpace":
+            if len(self.guessing_input_word) > 0:
+                self.guessing_input_word.pop()
+            self.guessing_input_letter = ""
 
         elif current_letter.isalpha():
-            self.playing_letter = current_letter.upper()
+            if len(self.guessing_input_word) >= len(self.playing_word):
+                self.guessing_input_word.popleft()
+            
+            self.guessing_input_letter = current_letter.upper()
+            self.guessing_input_word.append(self.guessing_input_letter)
+
+        self.current_input_letter.config(text=f"{self.guessing_input_letter}")
+        self.current_input_word.config(text=f"{''.join(self.guessing_input_word)}")
+        
+        
 
         # "BackSpace" - delete event
         print(current_letter)
 
+    def UpdatePlayerScore(self):
+        pass
+    
+    def ChangePlayerTurn(self):
+        pass
+
     def StartWheelRotation(self):
         if self.can_move == True:
+            self.can_move = False
             self.current_bonus_label.config(text=f'Rotating...')
             def SetBonusLabel(angle):
                 bonus = self.wheel.GetBonus(angle)
                 self.current_bonus_label.config(text=f'{bonus}')
-                #self.can_move = False
 
             self.wheel.RotateWheel(callback=SetBonusLabel)
 
@@ -101,8 +138,16 @@ class GamePage:
         # Creating 12 tiles for letters
         tiles_frame = ttk.Frame(top_frame)
         tiles_frame.grid(row=0, column=0, sticky='nsew', padx=10, pady=(20, 10))
+
         for i in range(12):
-            tile_label = ttk.Label(tiles_frame, text="    ", font=('Arial', 50), borderwidth=1, relief="raised")
+            tile_label = tk.Label(tiles_frame, text=" ", 
+                                  font=('Arial', 50),
+                                  fg='black',
+                                  borderwidth=1, 
+                                  relief="raised", 
+                                  width=2, 
+                                  anchor='center',
+                                  bg='#5A5A5A')
             tile_label.pack(side="left", padx=2)
             self.letter_tiles.append(tile_label)
 
@@ -166,13 +211,26 @@ class GamePage:
         turn_label.grid(row=2, column=0, sticky='nsew', padx=0, pady=0)
 
         # Guess placements
-        selected_option = tk.StringVar()
+        self.selected_option = tk.StringVar()
 
-        guess_letter_rbutton = tk.Radiobutton(bottom_right_frame, text="Guess letter:", variable=selected_option, value="Guess letter: ", font=('Arial', 18))
-        guess_letter_rbutton.grid(row=3, column=0, sticky='nsew', padx=0, pady=(10,5))
+        guess_choice_frame = ttk.Frame(bottom_right_frame)
+        guess_choice_frame.grid(row=3, column=0, sticky='nsew', padx=0, pady=(10, 10))
 
-        guess_word_rbutton = tk.Radiobutton(bottom_right_frame, text="Guess word:", variable=selected_option, value="Guess word: ", font=('Arial', 18))
-        guess_word_rbutton.grid(row=4, column=0, sticky='nsew', padx=0, pady=(10,5))
+        current_letter_label = tk.Label(guess_choice_frame, text=f"Current entered letter:")
+        current_letter_label.grid(row=0, column=1, sticky='nsew', padx=0, pady=0)
+        
+        guess_letter_rbutton = tk.Radiobutton(guess_choice_frame, text="Guess letter:", variable=self.selected_option, value="L: ", font=('Arial', 18))
+        guess_letter_rbutton.grid(row=1, column=0, sticky='nsew', padx=0, pady=(10,5))
+        self.current_input_letter = tk.Label(guess_choice_frame, text=f"", width=1)
+        self.current_input_letter.grid(row=1, column=1, sticky='nsew')
+
+        current_word_label = tk.Label(guess_choice_frame, text=f"Current entered word:")
+        current_word_label.grid(row=2, column=1, sticky='nsew', padx=0, pady=0)
+
+        guess_word_rbutton = tk.Radiobutton(guess_choice_frame, text="Guess word:", variable=self.selected_option, value="W: ", font=('Arial', 18))
+        guess_word_rbutton.grid(row=3, column=0, sticky='nsew', padx=0, pady=(10,5))
+        self.current_input_word = tk.Label(guess_choice_frame, text="", width=10)
+        self.current_input_word.grid(row=3, column=1, sticky='nsew', padx=0, pady=0)
 
         bottom_right_frame.grid(row=1, column=2, sticky='nsew')
 
