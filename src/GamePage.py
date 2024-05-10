@@ -21,6 +21,7 @@ class GamePage:
         self.player_turn = self.GetRandomPlayerTurn()
         self.wheel = None
         self.can_move = True
+        self.can_guess = False
         self.current_bonus_label = None
         self.current_input_letter = None
         self.current_input_word = None
@@ -28,6 +29,7 @@ class GamePage:
         self.selected_option = "L"
         self.guessing_input_word = collections.deque()
         self.guessing_input_letter = ""
+        self.one_player_left = False
 
         self.InitGameWindow()
         self.ReadWordAndHint()
@@ -40,9 +42,9 @@ class GamePage:
     def GetRandomPlayerTurn(self):
         rand_num = random.randint(1, 2)
         if rand_num == 1:
-            return self.player1.name
+            return 'P1'
         else:
-            return self.player2.name
+            return 'P2'
     
     def FindLetter(self, letter):
         if letter in self.word_indices:
@@ -63,6 +65,8 @@ class GamePage:
         self.playing_word = list(word_hints[random_number].keys())[0].upper()
         self.hint = list(word_hints[random_number].values())[0]
         self.hint_label.config(text="Hint: "+ self.hint)
+
+        self.word_letters = {char: False for char in self.playing_word}
 
         self.word_start_idx = int((12 - len(self.playing_word))/2)
 
@@ -85,15 +89,73 @@ class GamePage:
         for i in indices:
             self.letter_tiles[i + self.word_start_idx].config(text=f"{self.playing_word[i]}")
 
+    def ShowWholeWord(self):
+        i = 0
+        while i < len(self.playing_word):
+            self.letter_tiles[i + self.word_start_idx].config(text=f"{self.playing_word[i]}")
+            i += 1
+
+    def UpdatePlayerScore(self):
+        if self.player_turn == 'P1':
+            self.player1.score += int(self.bonus)
+            self.player1_score_label.config(text=f"{self.player1.name} Score: {self.player1.score}")
+        else:
+            self.player2.score += int(self.bonus)
+            self.player2_score_label.config(text=f"{self.player2.name} Score: {self.player2.score}")
+
+        self.can_move = True
+    
+    def InitGameOver(self):
+        print("GAME OVER")
+
+    def ChangePlayerTurn(self):
+        if self.one_player_left:
+            if self.player_tries == 3:
+                if self.player_turn == 'P1':
+                    self.player_turn = 'P2'
+                else:
+                    self.player_turn = 'P1'
+            else:
+                self.player_tries -= 1
+                if self.player_tries <= 0:
+                    self.InitGameOver()
+        
+        elif self.player_turn == 'P1':
+            self.player_turn = 'P2'
+        else:
+            self.player_turn = 'P1'
+        
+        self.SetPlayerTurnLabel()
+        self.can_move = True
+
     def GetPressedKey(self, event):
         current_letter = event.keysym
         if current_letter == "Return":
-            found, letters = self.FindLetter(self.guessing_input_letter)
-            if found == True:
-                self.ShowFoundLetters(letters)
-                self.UpdatePlayerScore()
-            else:
-                self.ChangePlayerTurn()
+            if self.can_guess:
+                if self.selected_option.get() == "LETTER":
+                    if self.word_letters.get(self.guessing_input_letter, False):
+                        return
+                    
+                    found, letters = self.FindLetter(self.guessing_input_letter)
+                    if found == True:
+                        self.word_letters[self.guessing_input_letter] = True
+                        self.ShowFoundLetters(letters)
+                        self.UpdatePlayerScore()
+                    else:
+                        self.ChangePlayerTurn()
+
+                elif self.selected_option.get() == "WORD":
+                    guess_word_str = ''.join(self.guessing_input_word)
+
+                    if guess_word_str == self.playing_word:
+                        self.ShowWholeWord()
+
+                    else:
+                        self.ChangePlayerTurn()
+                        self.one_player_left = True
+                
+                self.can_guess = False
+                
 
         elif current_letter == "BackSpace":
             if len(self.guessing_input_word) > 0:
@@ -115,19 +177,34 @@ class GamePage:
         # "BackSpace" - delete event
         print(current_letter)
 
-    def UpdatePlayerScore(self):
-        pass
-    
-    def ChangePlayerTurn(self):
-        pass
+    def InitPlayerBankrupcy(self):
+        if self.player_turn == 'P1':
+            self.player1.score = 0
+            self.player_turn = 'P2'
+        else:
+            self.player2.score = 0
+            self.player_turn = 'P1'
+
+        self.can_move = True
 
     def StartWheelRotation(self):
+        print(self.selected_option.get())
         if self.can_move == True:
             self.can_move = False
             self.current_bonus_label.config(text=f'Rotating...')
             def SetBonusLabel(angle):
-                bonus = self.wheel.GetBonus(angle)
-                self.current_bonus_label.config(text=f'{bonus}')
+                self.bonus = self.wheel.GetBonus(angle)
+                if self.bonus != 'Backruptcy':
+                    self.current_bonus_label.config(text=f'${self.bonus}')
+                    self.can_guess = True
+                else:
+                    self.current_bonus_label.config(text=f'{self.bonus}')
+                    self.InitPlayerBankrupcy()
+                    self.SetPlayerTurnLabel()
+                    self.can_guess = False
+                    self.can_move = True
+
+                print("can guess = true")
 
             self.wheel.RotateWheel(callback=SetBonusLabel)
 
@@ -195,20 +272,27 @@ class GamePage:
 
         bottom_middle_frame.grid(row=1, column=1, sticky='nsew')
 
+    def SetPlayerTurnLabel(self):
+        if self.player_turn == 'P1':
+            self.turn_label.config(text=f'{self.player1.name}\'s turn.')
+        elif self.player_turn == 'P2':
+            self.turn_label.config(text=f'{self.player2.name}\'s turn.')
+
     def GenerateBottomRightFrame(self, bottom_frame):
         # Bottom right frame
         bottom_right_frame = ttk.Frame(bottom_frame)
 
         # Player scores labels
-        player1_score_label = tk.Label(bottom_right_frame, text=f"{self.player1.name} Score: 0")
-        player1_score_label.grid(row=0, column=0, sticky='nsew', padx=0, pady=0)
+        self.player1_score_label = tk.Label(bottom_right_frame, text=f"{self.player1.name} Score: 0")
+        self.player1_score_label.grid(row=0, column=0, sticky='nsew', padx=0, pady=0)
 
-        player2_score_label = tk.Label(bottom_right_frame, text=f"{self.player2.name} Score: 0")
-        player2_score_label.grid(row=1, column=0, sticky='nsew', padx=0, pady=0)
+        self.player2_score_label = tk.Label(bottom_right_frame, text=f"{self.player2.name} Score: 0")
+        self.player2_score_label.grid(row=1, column=0, sticky='nsew', padx=0, pady=0)
 
         # Player's turn label
-        turn_label = tk.Label(bottom_right_frame, text=f"{self.player_turn}'s Turn", bg='blue', fg='white')
-        turn_label.grid(row=2, column=0, sticky='nsew', padx=0, pady=0)
+        self.turn_label = tk.Label(bottom_right_frame, text=f"NONE Turn", bg='blue', fg='white')
+        self.turn_label.grid(row=2, column=0, sticky='nsew', padx=0, pady=0)
+        self.SetPlayerTurnLabel()
 
         # Guess placements
         self.selected_option = tk.StringVar()
@@ -219,7 +303,7 @@ class GamePage:
         current_letter_label = tk.Label(guess_choice_frame, text=f"Current entered letter:")
         current_letter_label.grid(row=0, column=1, sticky='nsew', padx=0, pady=0)
         
-        guess_letter_rbutton = tk.Radiobutton(guess_choice_frame, text="Guess letter:", variable=self.selected_option, value="L: ", font=('Arial', 18))
+        guess_letter_rbutton = tk.Radiobutton(guess_choice_frame, text="Guess letter:", variable=self.selected_option, value="LETTER", font=('Arial', 18))
         guess_letter_rbutton.grid(row=1, column=0, sticky='nsew', padx=0, pady=(10,5))
         self.current_input_letter = tk.Label(guess_choice_frame, text=f"", width=1)
         self.current_input_letter.grid(row=1, column=1, sticky='nsew')
@@ -227,7 +311,7 @@ class GamePage:
         current_word_label = tk.Label(guess_choice_frame, text=f"Current entered word:")
         current_word_label.grid(row=2, column=1, sticky='nsew', padx=0, pady=0)
 
-        guess_word_rbutton = tk.Radiobutton(guess_choice_frame, text="Guess word:", variable=self.selected_option, value="W: ", font=('Arial', 18))
+        guess_word_rbutton = tk.Radiobutton(guess_choice_frame, text="Guess word:", variable=self.selected_option, value="WORD", font=('Arial', 18))
         guess_word_rbutton.grid(row=3, column=0, sticky='nsew', padx=0, pady=(10,5))
         self.current_input_word = tk.Label(guess_choice_frame, text="", width=10)
         self.current_input_word.grid(row=3, column=1, sticky='nsew', padx=0, pady=0)

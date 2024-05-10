@@ -64,20 +64,20 @@ class Wheel:
     def GetBonus(self, angle):
         right_angle = angle % 360
         if 0 <= right_angle < 45:
-            return "$10"
+            return "10"
         elif 45 <= right_angle < 90:
-            return "$200"
+            return "200"
         elif 90 <= right_angle < 135:
-            return "$100"
+            return "100"
         elif 135 <= right_angle < 180:
             return "Backruptcy"
         elif 180 <= right_angle < 225:
-            return "$500"
+            return "500"
         elif 225 <= right_angle < 270:
-            return "$10"
+            return "10"
         elif 270 <= right_angle < 315:
-            return "$100"
+            return "100"
         elif 315 <= right_angle < 360:
-            return "$200"
+            return "200"
         
         
