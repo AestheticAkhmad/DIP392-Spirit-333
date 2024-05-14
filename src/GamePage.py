@@ -6,8 +6,10 @@ import random
 import collections
 
 class GamePage:
-    def __init__(self, main_window, player1, player2) -> None:
-        self.game_frame = ttk.Frame(main_window)
+    def __init__(self, main_window, menu_frame, player1, player2) -> None:
+        self.main_window = main_window
+        self.menu_frame = menu_frame
+        self.game_frame = tk.Frame(main_window)
         self.game_frame.grid(row=0, column=0, sticky='nsew')
         self.letter_tiles = list()
         self.hint_label = None
@@ -30,6 +32,7 @@ class GamePage:
         self.guessing_input_word = collections.deque()
         self.guessing_input_letter = ""
         self.one_player_left = False
+        self.player_tries = 3
 
         self.InitGameWindow()
         self.ReadWordAndHint()
@@ -58,13 +61,14 @@ class GamePage:
             else:
                 self.word_indices[k].append(i)
 
-        print(self.word_indices)
-
     def ReadWordAndHint(self):
         random_number = self.GetRandomNumber()
         self.playing_word = list(word_hints[random_number].keys())[0].upper()
         self.hint = list(word_hints[random_number].values())[0]
         self.hint_label.config(text="Hint: "+ self.hint)
+
+        self.to_guess_letters_count = len(self.playing_word)
+        self.guessed_letters_count = 0
 
         self.word_letters = {char: False for char in self.playing_word}
 
@@ -82,8 +86,6 @@ class GamePage:
         
 
         self.SplitPlayingWord()
-
-        print(self.playing_word, "\n", self.hint)
     
     def ShowFoundLetters(self, indices):
         for i in indices:
@@ -105,20 +107,24 @@ class GamePage:
 
         self.can_move = True
     
+    def GoToMenu(self):
+        self.menu_frame.tkraise()
+
+    def ExitGame(self):
+        self.main_window.destroy()
+
     def InitGameOver(self):
-        print("GAME OVER")
+        self.result_label.config(text=f'Both players lost the game!')
+
+    def InitWinner(self, player):
+        self.result_label.config(text=f'Winner:\n{player.name}!\nTotal score:{player.score}')
 
     def ChangePlayerTurn(self):
         if self.one_player_left:
-            if self.player_tries == 3:
-                if self.player_turn == 'P1':
-                    self.player_turn = 'P2'
-                else:
-                    self.player_turn = 'P1'
-            else:
-                self.player_tries -= 1
-                if self.player_tries <= 0:
-                    self.InitGameOver()
+            self.player_tries -= 1
+            if self.player_tries <= 0:
+                self.InitGameOver()
+                return
         
         elif self.player_turn == 'P1':
             self.player_turn = 'P2'
@@ -141,6 +147,17 @@ class GamePage:
                         self.word_letters[self.guessing_input_letter] = True
                         self.ShowFoundLetters(letters)
                         self.UpdatePlayerScore()
+
+                        self.guessed_letters_count += len(letters)
+
+                        if self.guessed_letters_count == self.to_guess_letters_count:
+                            if self.player_turn == 'P1':
+                                self.InitWinner(self.player1)
+                                return
+                            else:
+                                self.InitWinner(self.player2)
+                                return
+
                     else:
                         self.ChangePlayerTurn()
 
@@ -149,7 +166,13 @@ class GamePage:
 
                     if guess_word_str == self.playing_word:
                         self.ShowWholeWord()
-
+                        self.UpdatePlayerScore()
+                        if self.player_turn == 'P1':
+                            self.InitWinner(self.player1)
+                            return
+                        else:
+                            self.InitWinner(self.player2)
+                            return
                     else:
                         self.ChangePlayerTurn()
                         self.one_player_left = True
@@ -171,19 +194,23 @@ class GamePage:
 
         self.current_input_letter.config(text=f"{self.guessing_input_letter}")
         self.current_input_word.config(text=f"{''.join(self.guessing_input_word)}")
-        
-        
-
-        # "BackSpace" - delete event
-        print(current_letter)
 
     def InitPlayerBankrupcy(self):
         if self.player_turn == 'P1':
             self.player1.score = 0
-            self.player_turn = 'P2'
+            self.player1_score_label.config(text=f"{self.player1.name} Score: {self.player1.score}")
         else:
             self.player2.score = 0
-            self.player_turn = 'P1'
+            self.player2_score_label.config(text=f"{self.player2.name} Score: {self.player2.score}")
+
+        if not self.one_player_left:
+            self.ChangePlayerTurn()
+        else:
+            self.player_tries -= 1
+
+        if self.player_tries <= 0:
+            self.InitGameOver()
+            return
 
         self.can_move = True
 
@@ -203,8 +230,6 @@ class GamePage:
                     self.SetPlayerTurnLabel()
                     self.can_guess = False
                     self.can_move = True
-
-                print("can guess = true")
 
             self.wheel.RotateWheel(callback=SetBonusLabel)
 
@@ -229,11 +254,11 @@ class GamePage:
             self.letter_tiles.append(tile_label)
 
         # Home button
-        home_button = tk.Button(top_frame, text="Home")
+        home_button = tk.Button(top_frame, text="Home", command=lambda: self.GoToMenu())
         home_button.grid(row=0, column=1, sticky='nse', padx=10, pady=(20, 10))
         home_button.config(height=2, width=10)
 
-        exit_button = tk.Button(top_frame, text="Exit")
+        exit_button = tk.Button(top_frame, text="Exit", command=lambda: self.ExitGame())
         exit_button.grid(row=0, column=2, sticky='nse', padx=10, pady=(20, 10))
         exit_button.config(height=2, width=10)
         
@@ -241,12 +266,15 @@ class GamePage:
 
     def GenerateBottomLeftFrame(self, bottom_frame):
         # Hint label
-        bottom_left_frame = ttk.Frame(bottom_frame)
+        bottom_left_frame = tk.Frame(bottom_frame, width=400)
         self.hint_label = tk.Label(bottom_left_frame, text="", font=('Arial', 26))
         self.hint_label.grid(row=0, column=0, sticky='nsw', padx=(10, 5), pady=(5, 5))
 
         self.rule_label = tk.Label(bottom_left_frame, text="Rule: press alphabetic letter and Enter key.", font=('Arial', 16))
         self.rule_label.grid(row=1, column=0, sticky='nsw', padx=(10, 5), pady=(5, 5))
+
+        self.result_label = tk.Label(bottom_left_frame, text="", font=('Helvetica', 32, 'bold'))
+        self.result_label.grid(row=2, column=0, sticky='nsw', padx=(10, 5), pady=(5, 5))
 
         bottom_left_frame.grid(row=1, column=0, sticky='nsew')
 
