@@ -57,7 +57,7 @@ class GameMenu:
         self.player2.name = self.player2_entry.get()
 
     def StartGame(self):
-        self.game_page = GamePage(self.window, self.menu_frame, self.player1, self.player2)
+        self.game_page = GamePage(self.window, self.menu_frame, self.player1, self.player2, self.player1_entry, self.player2_entry)
         print("STARTED THE GAME")
 
     def InitStart(self):
@@ -103,6 +103,3 @@ class GameMenu:
         # Notification label
         self.info_label = tk.Label(self.menu_frame, text="Please, use English letters and numbers.", fg="red")
         self.info_label.grid(row=3, column=0, columnspan=2, padx=20, pady=20)
-
-    def CheckPlayerNames(self):
-        pass

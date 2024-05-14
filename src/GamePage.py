@@ -6,7 +6,7 @@ import random
 import collections
 
 class GamePage:
-    def __init__(self, main_window, menu_frame, player1, player2) -> None:
+    def __init__(self, main_window, menu_frame, player1, player2, entry1, entry2) -> None:
         self.main_window = main_window
         self.menu_frame = menu_frame
         self.game_frame = tk.Frame(main_window)
@@ -20,6 +20,8 @@ class GamePage:
         
         self.player1 = player1
         self.player2 = player2
+        self.entry1 = entry1
+        self.entry2 = entry2
         self.player_turn = self.GetRandomPlayerTurn()
         self.wheel = None
         self.can_move = True
@@ -108,6 +110,8 @@ class GamePage:
         self.can_move = True
     
     def GoToMenu(self):
+        self.entry1.delete(0, tk.END)
+        self.entry2.delete(0, tk.END)
         self.menu_frame.tkraise()
 
     def ExitGame(self):
@@ -174,6 +178,10 @@ class GamePage:
                             self.InitWinner(self.player2)
                             return
                     else:
+                        if self.one_player_left:
+                            self.InitGameOver()
+                            return
+                        
                         self.ChangePlayerTurn()
                         self.one_player_left = True
                 
