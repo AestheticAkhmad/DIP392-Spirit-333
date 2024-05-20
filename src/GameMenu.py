@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter import ttk
 import re
 
 from GamePage import GamePage
@@ -17,6 +16,7 @@ class GameMenu:
         self.player2_entry = None
         self.window = main_window
         self.menu_frame = tk.Frame(self.window)
+        self.menu_frame.configure(bg='#E4D5B7')
         self.menu_frame.grid(row=0, column=0, sticky="nsew")
         self.pattern = r"^(?=.*[A-Za-z])[A-Za-z0-9]{3,16}$"
         self.info_label = None
@@ -24,7 +24,7 @@ class GameMenu:
         self.CreateMenu()
 
     def GetLeftWidth(self):
-        return 500
+        return 300
     
     def GetRightWidth(self):
         return 5
@@ -68,7 +68,7 @@ class GameMenu:
         # Creating labels
         player1_label = tk.Label(self.menu_frame, 
                                  text="First player name:",
-                                 font=('Arial', 24))
+                                 font=('Arial', 24), bg="#E4D5B7", fg='black')
         player1_label.grid(row=0, column=0, sticky='e', 
                            padx=(self.GetLeftWidth(), self.GetRightWidth()), 
                            pady=(self.GetTopHeight(), 0))
@@ -81,7 +81,7 @@ class GameMenu:
 
         player2_label = tk.Label(self.menu_frame, 
                                  text="Second player name:",
-                                 font=('Arial', 24))
+                                 font=('Arial', 24), bg="#E4D5B7", fg='black')
         player2_label.grid(row=1, column=0, 
                            padx=(self.GetLeftWidth(), self.GetRightWidth()), 
                            pady=10)
@@ -96,10 +96,10 @@ class GameMenu:
         start_button = tk.Button(self.menu_frame, 
                                  text="Start Game", 
                                  command=self.InitStart,
-                                 font=('Arial', 28))
+                                 font=('Arial', 28), bg="#000000", fg='white')
         start_button.grid(row=2, column=0, columnspan=2, padx=20, pady=20)
         start_button.config(height=2, width=20)
 
         # Notification label
-        self.info_label = tk.Label(self.menu_frame, text="Please, use English letters and numbers.", fg="red")
+        self.info_label = tk.Label(self.menu_frame, text="Please, use English letters and numbers.", fg="red", bg="#E4D5B7", font=('Arial', 18))
         self.info_label.grid(row=3, column=0, columnspan=2, padx=20, pady=20)

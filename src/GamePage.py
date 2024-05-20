@@ -10,6 +10,7 @@ class GamePage:
         self.main_window = main_window
         self.menu_frame = menu_frame
         self.game_frame = tk.Frame(main_window)
+        self.game_frame.configure(bg='#E4D5B7')
         self.game_frame.grid(row=0, column=0, sticky='nsew')
         self.letter_tiles = list()
         self.hint_label = None
@@ -67,7 +68,8 @@ class GamePage:
         random_number = self.GetRandomNumber()
         self.playing_word = list(word_hints[random_number].keys())[0].upper()
         self.hint = list(word_hints[random_number].values())[0]
-        self.hint_label.config(text="Hint: "+ self.hint)
+        self.hint_label.config(text="Hint: "+ self.hint, bg="#E4D5B7", fg='black')
+        
 
         self.to_guess_letters_count = len(self.playing_word)
         self.guessed_letters_count = 0
@@ -243,10 +245,11 @@ class GamePage:
 
     def InitTopFrame(self):
         # Top Frame
-        top_frame = ttk.Frame(self.game_frame)
-
+        top_frame = tk.Frame(self.game_frame)
+        top_frame.configure(bg='#E4D5B7')
         # Creating 12 tiles for letters
-        tiles_frame = ttk.Frame(top_frame)
+        tiles_frame = tk.Frame(top_frame)
+        tiles_frame.configure(bg='#E4D5B7')
         tiles_frame.grid(row=0, column=0, sticky='nsew', padx=10, pady=(20, 10))
 
         for i in range(12):
@@ -262,11 +265,11 @@ class GamePage:
             self.letter_tiles.append(tile_label)
 
         # Home button
-        home_button = tk.Button(top_frame, text="Home", command=lambda: self.GoToMenu())
+        home_button = tk.Button(top_frame, text="Home", command=lambda: self.GoToMenu(), bg="#77DD77")
         home_button.grid(row=0, column=1, sticky='nse', padx=10, pady=(20, 10))
         home_button.config(height=2, width=10)
 
-        exit_button = tk.Button(top_frame, text="Exit", command=lambda: self.ExitGame())
+        exit_button = tk.Button(top_frame, text="Exit", command=lambda: self.ExitGame(), bg="#FF6F61")
         exit_button.grid(row=0, column=2, sticky='nse', padx=10, pady=(20, 10))
         exit_button.config(height=2, width=10)
         
@@ -275,34 +278,39 @@ class GamePage:
     def GenerateBottomLeftFrame(self, bottom_frame):
         # Hint label
         bottom_left_frame = tk.Frame(bottom_frame, width=400)
-        self.hint_label = tk.Label(bottom_left_frame, text="", font=('Arial', 26))
+        bottom_left_frame.configure(bg='#E4D5B7')
+        self.hint_label = tk.Label(bottom_left_frame, text="", font=('Arial', 26), bg="#E4D5B7", fg='black')
         self.hint_label.grid(row=0, column=0, sticky='nsw', padx=(10, 5), pady=(5, 5))
 
-        self.rule_label = tk.Label(bottom_left_frame, text="Rule: press alphabetic letter and Enter key.", font=('Arial', 16))
+        self.rule_label = tk.Label(bottom_left_frame, text="Rule: press alphabetic letter and Enter key.", font=('Arial', 16), bg="#E4D5B7", fg='black')
         self.rule_label.grid(row=1, column=0, sticky='nsw', padx=(10, 5), pady=(5, 5))
 
-        self.result_label = tk.Label(bottom_left_frame, text="", font=('Helvetica', 32, 'bold'))
+        self.result_label = tk.Label(bottom_left_frame, text="", font=('Helvetica', 32, 'bold'), bg='#89CFF0', fg='black')
         self.result_label.grid(row=2, column=0, sticky='nsw', padx=(10, 5), pady=(5, 5))
 
         bottom_left_frame.grid(row=1, column=0, sticky='nsew')
 
     def GenerateBottomMiddleFrame(self, bottom_frame):
         # Bottom middle frame
-        bottom_middle_frame = ttk.Frame(bottom_frame)
+        bottom_middle_frame = tk.Frame(bottom_frame)
+        bottom_middle_frame.configure(bg='#E4D5B7')
+
 
         # Wheel
-        wheel_frame = ttk.Frame(bottom_middle_frame)
+        wheel_frame = tk.Frame(bottom_middle_frame)
+        wheel_frame.configure(bg='#E4D5B7')
         self.wheel = Wheel(wheel_frame)
         wheel_frame.grid(row=0, column=0, sticky="nsew")
 
         # Placeholder for wheel bonus
-        bonus_frame = ttk.Frame(bottom_middle_frame, borderwidth=2, relief="sunken", width=200, height=100)
+        bonus_frame = tk.Frame(bottom_middle_frame, borderwidth=2, relief="sunken", width=200, height=100)
+        #bonus_frame.configure(bg='#E4D5B7')
         bonus_frame.grid(row=1, column=0, sticky='nsew')
-        self.current_bonus_label = ttk.Label(bonus_frame, text="No bonuses.", font=('Fixedsys', 30, "bold"))
+        self.current_bonus_label = tk.Label(bonus_frame, text="No bonuses.", font=('Fixedsys', 30, "bold"))
         self.current_bonus_label.grid(row=0,column=0, sticky='nsew')
 
         # Rotate button
-        self.rotate_button = tk.Button(bottom_middle_frame, text="Rotate Wheel")
+        self.rotate_button = tk.Button(bottom_middle_frame, text="Rotate Wheel", bg="#2A52BE", fg='white', font=('Fixedsys', 14, "bold"))
         self.rotate_button.config(command=lambda: self.StartWheelRotation())
         self.rotate_button.grid(row=2, column=0, sticky='nsew', padx=0, pady=0)
 
@@ -316,47 +324,50 @@ class GamePage:
 
     def GenerateBottomRightFrame(self, bottom_frame):
         # Bottom right frame
-        bottom_right_frame = ttk.Frame(bottom_frame)
+        bottom_right_frame = tk.Frame(bottom_frame)
+        bottom_right_frame.configure(bg='#E4D5B7')
 
         # Player scores labels
-        self.player1_score_label = tk.Label(bottom_right_frame, text=f"{self.player1.name} Score: 0")
+        self.player1_score_label = tk.Label(bottom_right_frame, text=f"{self.player1.name} Score: 0", bg="#E4D5B7", fg='black', font=('Arial', 11))
         self.player1_score_label.grid(row=0, column=0, sticky='nsew', padx=0, pady=0)
 
-        self.player2_score_label = tk.Label(bottom_right_frame, text=f"{self.player2.name} Score: 0")
+        self.player2_score_label = tk.Label(bottom_right_frame, text=f"{self.player2.name} Score: 0", bg="#E4D5B7", fg='black', font=('Arial', 11))
         self.player2_score_label.grid(row=1, column=0, sticky='nsew', padx=0, pady=0)
 
         # Player's turn label
-        self.turn_label = tk.Label(bottom_right_frame, text=f"NONE Turn", bg='blue', fg='white')
+        self.turn_label = tk.Label(bottom_right_frame, text=f"NONE Turn", bg='#F4C430', fg='black', font=('Arial', 11))
         self.turn_label.grid(row=2, column=0, sticky='nsew', padx=0, pady=0)
         self.SetPlayerTurnLabel()
 
         # Guess placements
         self.selected_option = tk.StringVar()
 
-        guess_choice_frame = ttk.Frame(bottom_right_frame)
+        guess_choice_frame = tk.Frame(bottom_right_frame)
+        guess_choice_frame.configure(bg='#E4D5B7')
         guess_choice_frame.grid(row=3, column=0, sticky='nsew', padx=0, pady=(10, 10))
 
-        current_letter_label = tk.Label(guess_choice_frame, text=f"Current entered letter:")
+        current_letter_label = tk.Label(guess_choice_frame, text=f"Current entered letter:", bg="#E4D5B7", fg='black')
         current_letter_label.grid(row=0, column=1, sticky='nsew', padx=0, pady=0)
         
-        guess_letter_rbutton = tk.Radiobutton(guess_choice_frame, text="Guess letter:", variable=self.selected_option, value="LETTER", font=('Arial', 18))
+        guess_letter_rbutton = tk.Radiobutton(guess_choice_frame, text="Guess letter:", variable=self.selected_option, value="LETTER", font=('Arial', 18), bg="#E4D5B7", fg='black')
         guess_letter_rbutton.grid(row=1, column=0, sticky='nsew', padx=0, pady=(10,5))
-        self.current_input_letter = tk.Label(guess_choice_frame, text=f"", width=1)
+        self.current_input_letter = tk.Label(guess_choice_frame, text=f"", width=1, bg="#E4D5B7", fg='black')
         self.current_input_letter.grid(row=1, column=1, sticky='nsew')
 
-        current_word_label = tk.Label(guess_choice_frame, text=f"Current entered word:")
+        current_word_label = tk.Label(guess_choice_frame, text=f"Current entered word:", bg="#E4D5B7", fg='black')
         current_word_label.grid(row=2, column=1, sticky='nsew', padx=0, pady=0)
 
-        guess_word_rbutton = tk.Radiobutton(guess_choice_frame, text="Guess word:", variable=self.selected_option, value="WORD", font=('Arial', 18))
+        guess_word_rbutton = tk.Radiobutton(guess_choice_frame, text="Guess word:", variable=self.selected_option, value="WORD", font=('Arial', 18), bg="#E4D5B7", fg='black')
         guess_word_rbutton.grid(row=3, column=0, sticky='nsew', padx=0, pady=(10,5))
-        self.current_input_word = tk.Label(guess_choice_frame, text="", width=10)
+        self.current_input_word = tk.Label(guess_choice_frame, text="", width=10, bg="#E4D5B7", fg='black')
         self.current_input_word.grid(row=3, column=1, sticky='nsew', padx=0, pady=0)
 
-        bottom_right_frame.grid(row=1, column=2, sticky='nsew')
+        bottom_right_frame.grid(row=1, column=2, sticky='nsw')
 
     def InitBottomFrame(self):
         # Bottom frame
-        bottom_frame = ttk.Frame(self.game_frame)
+        bottom_frame = tk.Frame(self.game_frame)
+        bottom_frame.configure(bg='#E4D5B7')
         self.GenerateBottomLeftFrame(bottom_frame)
         self.GenerateBottomMiddleFrame(bottom_frame)
         self.GenerateBottomRightFrame(bottom_frame)
