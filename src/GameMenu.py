@@ -93,12 +93,12 @@ class GameMenu:
                            pady=10)
 
         # Creating start button
-        start_button = tk.Button(self.menu_frame, 
+        self.start_button = tk.Button(self.menu_frame, 
                                  text="Start Game", 
                                  command=self.InitStart,
                                  font=('Arial', 28), bg="#000000", fg='white')
-        start_button.grid(row=2, column=0, columnspan=2, padx=20, pady=20)
-        start_button.config(height=2, width=20)
+        self.start_button.grid(row=2, column=0, columnspan=2, padx=20, pady=20)
+        self.start_button.config(height=2, width=20)
 
         # Notification label
         self.info_label = tk.Label(self.menu_frame, text="Please, use English letters and numbers.", fg="red", bg="#E4D5B7", font=('Arial', 18))
