@@ -124,6 +124,8 @@ class GamePage:
 
     def InitWinner(self, player):
         self.result_label.config(text=f'Winner:\n{player.name}!\nTotal score:{player.score}')
+        self.can_move = False
+        self.can_guess = False
 
     def ChangePlayerTurn(self):
         if self.one_player_left:
